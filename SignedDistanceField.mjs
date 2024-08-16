@@ -1443,8 +1443,6 @@ export class SignedDistanceFieldTransform extends SignedDistanceField {
     calculate_signed_distance(x, y, z) {
         SignedDistanceFieldTransform.temp_vector.set(x, y, z);
         SignedDistanceFieldTransform.temp_vector.transform(this.inverse_matrix);
-        console.log("inverse_matrix:", this.inverse_matrix);
-        console.log("temp_vector:", SignedDistanceFieldTransform.temp_vector);
         return this.field.calculate_signed_distance(
             SignedDistanceFieldTransform.temp_vector.x,
             SignedDistanceFieldTransform.temp_vector.y,
