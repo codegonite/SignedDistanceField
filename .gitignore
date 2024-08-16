@@ -1,0 +1,4 @@
+*.obj
+*.log
+models
+node_modules
