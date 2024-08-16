@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/codegonite/SignedDistanceFieldJS/issues"
   },
-  "homepage": "https://github.com/codegonite/SignedDistanceFieldJS#readme"
+  "homepage": "https://github.com/codegonite/SignedDistanceFieldJS#readme",
+  "keywords": [
+    "sdf",
+    "distance field",
+    "3D",
+    "model"
+  ]
 }

@@ -17,33 +17,48 @@ function least_common_multiple(a, b) {
     return a * b / greatest_common_factor(a, b);
 }
 
+
 function greatest_common_factor(a, b) {
-    if (Math.floor(a) != a || Math.floor(b) != b) {
-        let numerator0   = a;
-        let numerator1   = b;
-        let denominator0 = 1;
-        let denominator1 = 1;
-        
-        if (Math.floor(numerator0) != numerator0) {
-            denominator0 = Math.pow(10, numerator0.toString().split('.')[1].length);
-            numerator0 = Math.round(numerator0 * denominator0);
-        }
-
-        if (Math.floor(numerator1) != numerator1) {
-            denominator1 = Math.pow(10, numerator1.toString().split('.')[1].length);
-            numerator1 = Math.round(numerator1 * denominator1);
-        }
-
-        return greatest_common_factor(numerator0, numerator1) / least_common_multiple(denominator0, denominator1);
+    if (a < b) {
+        return greatest_common_factor(b, a);
+    }
+ 
+    if (Math.abs(b) < 0.001) {
+        return a;
     }
 
-    const remainder = a % b;
-    if (remainder == 0) {
-        return b;
-    } else {
-        return greatest_common_factor(b, remainder);
-    }
+    return (greatest_common_factor(b, a - Math.floor(a / b) * b));
 }
+
+// function greatest_common_factor(a, b) {
+//     if (Math.floor(a) != a || Math.floor(b) != b) {
+//         let numerator0   = a;
+//         let numerator1   = b;
+//         let denominator0 = 1;
+//         let denominator1 = 1;
+        
+//         if (Math.floor(numerator0) != numerator0) {
+//             denominator0 = Math.pow(10, numerator0.toString().split('.')[1].length);
+//             numerator0 = Math.round(numerator0 * denominator0);
+//         }
+
+//         console.log("numerator1:", numerator1.toString(10));
+
+//         if (Math.floor(numerator1) != numerator1) {
+//             denominator1 = Math.pow(10, numerator1.toString().split('.')[1].length);
+//             numerator1 = Math.round(numerator1 * denominator1);
+//         }
+
+//         return greatest_common_factor(numerator0, numerator1) / least_common_multiple(denominator0, denominator1);
+//     }
+
+//     const remainder = a % b;
+//     if (remainder == 0) {
+//         return b;
+//     } else {
+//         return greatest_common_factor(b, remainder);
+//     }
+// }
 
 export class Vector3 {
     static from(v) { return new Vector3(v.x, v.y, v.z); }
@@ -200,14 +215,9 @@ export class Vector3 {
 
     transform(m) {
         const x = this.x, y = this.y, z = this.z;
-        const m00=m.x,  m01=m.y,  m02=m.z;
-        const m10=m[4],  m11=m[5],  m12=m[6];
-        const m20=m[8],  m21=m[9],  m22=m[10];
-        const m30=m[12], m31=m[13], m32=m[14];
-        
-        this.x = x*m00 + y*m10 + z*m20 + m30;
-        this.y = x*m01 + y*m11 + z*m21 + m31;
-        this.z = x*m02 + y*m12 + z*m22 + m32;
+        this.x = x*m.m00 + y*m.m10 + z*m.m20 + m.m30;
+        this.y = x*m.m01 + y*m.m11 + z*m.m21 + m.m31;
+        this.z = x*m.m02 + y*m.m12 + z*m.m22 + m.m32;
         return this;
     }
     
@@ -240,14 +250,9 @@ export class Vector3 {
 
     transform_vector(m, v) {
         const x = v.x, y = v.y, z = v.z;
-        const m00=m.x,  m01=m.y,  m02=m.z;
-        const m10=m[4],  m11=m[5],  m12=m[6];
-        const m20=m[8],  m21=m[9],  m22=m[10];
-        const m30=m[12], m31=m[13], m32=m[14];
-        
-        this.x = x*m00 + y*m10 + z*m20 + m30;
-        this.y = x*m01 + y*m11 + z*m21 + m31;
-        this.z = x*m02 + y*m12 + z*m22 + m32;
+        this.x = x*m.m00 + y*m.m10 + z*m.m20 + m.m30;
+        this.y = x*m.m01 + y*m.m11 + z*m.m21 + m.m31;
+        this.z = x*m.m02 + y*m.m12 + z*m.m22 + m.m32;
         return this;
     }
     
@@ -834,25 +839,15 @@ export class SignedDistanceField {
 
     calculate_closest_surface_vector(x, y, z, out_vector = new Vector3(0, 0, 0)) {
         const distance = this.calculate_signed_distance(x, y, z);
-        const delta = this.calculate_gradient(x, y, z, out_vector).set_length(distance);
-        console.log({x, y, z, distance});
-        return delta.add(SignedDistanceField.temp_vector0.set(x, y, z));
+        const delta = this.calculate_gradient(x, y, z).set_length(distance);
+        // console.log({x, y, z, delta, distance});
+        // return out_vector.add_vectors(SignedDistanceField.temp_vector0.set(x, y, z), delta);
+        return out_vector.sub_vectors(SignedDistanceField.temp_vector0.set(x, y, z), delta);
     }
 
     get_sample_point(x, y, z) {
         const d = this.calculate_signed_distance(x, y, z);
         return new SamplePoint(x, y, z, d);
-    }
-
-    calculate_bounding_box() {
-        const LARGEST_NUMBER = 1000000;
-        const min_x = this.calculate_closest_surface_vector(-LARGEST_NUMBER, 0, 0).x;
-        const max_x = this.calculate_closest_surface_vector( LARGEST_NUMBER, 0, 0).x;
-        const min_y = this.calculate_closest_surface_vector(0, -LARGEST_NUMBER, 0).y;
-        const max_y = this.calculate_closest_surface_vector(0,  LARGEST_NUMBER, 0).y;
-        const min_z = this.calculate_closest_surface_vector(0, 0, -LARGEST_NUMBER).z;
-        const max_z = this.calculate_closest_surface_vector(0, 0,  LARGEST_NUMBER).z;
-        return new BoundingBox(min_x, max_x, min_y, max_y, min_z, max_z);
     }
 
     union(... others)                                  { return new SignedDistanceFieldUnion(this, ... others); }
@@ -869,18 +864,18 @@ export class SignedDistanceField {
         const faces = [];
         const sample_points = [];
         const step_size = this.bounding_box.largest_side / step_count;
-        console.log(this.bounding_box.min_x);
-        console.log(this.bounding_box.min_y);
-        console.log(this.bounding_box.min_z);
-        console.log(this.bounding_box.max_x);
-        console.log(this.bounding_box.max_y);
-        console.log(this.bounding_box.max_z);
-        console.log(this.bounding_box.size_x);
-        console.log(this.bounding_box.size_y);
-        console.log(this.bounding_box.size_z);
-        console.log(this.bounding_box.largest_side)
-        console.log({step_count});
-        console.log({step_size});
+        // console.log("min_x:", this.bounding_box.min_x);
+        // console.log("max_x:", this.bounding_box.max_x);
+        // console.log("min_y:", this.bounding_box.min_y);
+        // console.log("max_y:", this.bounding_box.max_y);
+        // console.log("min_z:", this.bounding_box.min_z);
+        // console.log("max_z:", this.bounding_box.max_z);
+        // console.log("size_x:", this.bounding_box.size_x);
+        // console.log("size_y:", this.bounding_box.size_y);
+        // console.log("size_z:", this.bounding_box.size_z);
+        // console.log("largest_side:", this.bounding_box.largest_side)
+        // console.log({step_count});
+        // console.log({step_size});
         
         const smallest_sample_count = this.bounding_box.smallest_side / this.bounding_box.smallest_cube_size();
         const bounding_box          = smallest_sample_count >= 1000 ? this.bounding_box.clone().optimize_smallest_cube_size(step_size) : this.bounding_box;
@@ -997,24 +992,6 @@ export class SignedDistanceField {
 }
 
 export class BoundingBox {
-    get size_x() { return this.max_x - this.min_x; }
-    get size_y() { return this.max_y - this.min_y; }
-    get size_z() { return this.max_z - this.min_z; }
-    get center_x() { return (this.max_x + this.min_x) / 2; }
-    get center_y() { return (this.max_y + this.min_y) / 2; }
-    get center_z() { return (this.max_z + this.min_z) / 2; }
-    get largest_side() { return Math.max(this.size_x, this.size_y, this.size_z); }
-    get smallest_side() { return Math.min(this.size_x, this.size_y, this.size_z); }
-
-    constructor(min_x = 0, min_y = 0, min_z = 0, max_x = 0, max_y = 0, max_z = 0) {
-        this.min_x = min_x;
-        this.min_y = min_y;
-        this.min_z = min_z;
-        this.max_x = max_x;
-        this.max_y = max_y;
-        this.max_z = max_z;
-    }
-
     static enclose_distance_fields(fields) {
         const bounding_box = fields[0].bounding_box.clone();
         
@@ -1057,6 +1034,54 @@ export class BoundingBox {
         );
     }
     
+    constructor(min_x = 0, min_y = 0, min_z = 0, max_x = 0, max_y = 0, max_z = 0) {
+        this.min_x = min_x;
+        this.min_y = min_y;
+        this.min_z = min_z;
+        this.max_x = max_x;
+        this.max_y = max_y;
+        this.max_z = max_z;
+    }
+    
+    get size_x() { return this.max_x - this.min_x; }
+    get size_y() { return this.max_y - this.min_y; }
+    get size_z() { return this.max_z - this.min_z; }
+    get center_x() { return (this.max_x + this.min_x) / 2; }
+    get center_y() { return (this.max_y + this.min_y) / 2; }
+    get center_z() { return (this.max_z + this.min_z) / 2; }
+    get largest_side() { return Math.max(this.size_x, this.size_y, this.size_z); }
+    get smallest_side() { return Math.min(this.size_x, this.size_y, this.size_z); }
+
+    transform(matrix) {
+        const r0 = matrix.m00, r1 = matrix.m01, r2 = matrix.m02;
+        const u0 = matrix.m10, u1 = matrix.m11, u2 = matrix.m12;
+        const b0 = matrix.m20, b1 = matrix.m21, b2 = matrix.m22;
+        const t0 = matrix.m30, t1 = matrix.m31, t2 = matrix.m32;
+
+        const xa0 = r0 * this.min_x, xa1 = r1 * this.min_x, xa2 = r2 * this.min_x;
+        const xb0 = r0 * this.max_x, xb1 = r1 * this.max_x, xb2 = r2 * this.max_x;
+        const ya0 = u0 * this.min_y, ya1 = u1 * this.min_y, ya2 = u2 * this.min_y;
+        const yb0 = u0 * this.max_y, yb1 = u1 * this.max_y, yb2 = u2 * this.max_y;
+        const za0 = b0 * this.min_z, za1 = b1 * this.min_z, za2 = b2 * this.min_z;
+        const zb0 = b0 * this.max_z, zb1 = b1 * this.max_z, zb2 = b2 * this.max_z;
+
+        const min0_x = Math.min(xa0, xb0), min1_x = Math.min(xa1, xb1), min2_x = Math.min(xa2, xb2);
+        const max0_x = Math.max(xa0, xb0), max1_x = Math.max(xa1, xb1), max2_x = Math.max(xa2, xb2);
+        const min0_y = Math.min(ya0, yb0), min1_y = Math.min(ya1, yb1), min2_y = Math.min(ya2, yb2);
+        const max0_y = Math.max(ya0, yb0), max1_y = Math.max(ya1, yb1), max2_y = Math.max(ya2, yb2);
+        const min0_z = Math.min(za0, zb0), min1_z = Math.min(za1, zb1), min2_z = Math.min(za2, zb2);
+        const max0_z = Math.max(za0, zb0), max1_z = Math.max(za1, zb1), max2_z = Math.max(za2, zb2);
+
+        return new BoundingBox(
+            min0_x + min0_y + min0_z + t0,
+            min1_x + min1_y + min1_z + t1,
+            min2_x + min2_y + min2_z + t2,
+            max0_x + max0_y + max0_z + t0,
+            max1_x + max1_y + max1_z + t1,
+            max2_x + max2_y + max2_z + t2,
+        );
+    }
+
     center() {
         return new Vector3(this.center_x, this.center_y, this.center_z);
     }
@@ -1436,13 +1461,17 @@ export class SignedDistanceFieldTransform extends SignedDistanceField {
         this.field = field;
         this.matrix = matrix.clone();
         this.inverse_matrix = matrix.inverse();
+        this.bounding_box = this.field.bounding_box.transform(this.matrix);
+        // this.bounding_box = this.calculate_bounding_box();
 
-        this.bounding_box = this.calculate_bounding_box();
+        // console.log(this);
     }
 
     calculate_signed_distance(x, y, z) {
         SignedDistanceFieldTransform.temp_vector.set(x, y, z);
+        // console.log("temp_vector:", SignedDistanceFieldTransform.temp_vector);
         SignedDistanceFieldTransform.temp_vector.transform(this.inverse_matrix);
+        // console.log("temp_vector:", SignedDistanceFieldTransform.temp_vector);
         return this.field.calculate_signed_distance(
             SignedDistanceFieldTransform.temp_vector.x,
             SignedDistanceFieldTransform.temp_vector.y,
