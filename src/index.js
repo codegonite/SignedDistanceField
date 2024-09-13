@@ -3667,12 +3667,6 @@ export class SignedDistanceFieldDifferenceSmooth extends SignedDistanceField {
         this.bounding_box = this.fields[0].bounding_box.clone();
     }
 
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @returns {number}
-     */
     calculateSignedDistance(x, y, z) {
         let distance0 = this.fields[0].calculateSignedDistance(x, y, z);
 
