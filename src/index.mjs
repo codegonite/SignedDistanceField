@@ -27,7 +27,7 @@ export const SIGNED_DISTANCE_FIELD_KIND_UNKNOWN             = 0;
 export const SIGNED_DISTANCE_FIELD_KIND_SPHERE              = 1;
 export const SIGNED_DISTANCE_FIELD_KIND_CYLINDER            = 2;
 export const SIGNED_DISTANCE_FIELD_KIND_CUBE                = 3;
-export const SIGNED_DISTANCE_FIELD_KIND_CUBOID              = 4;
+export const SIGNED_DISTANCE_FIELD_KIND_BOX              = 4;
 export const SIGNED_DISTANCE_FIELD_KIND_UNION               = 5;
 export const SIGNED_DISTANCE_FIELD_KIND_DIFFERENCE          = 6;
 export const SIGNED_DISTANCE_FIELD_KIND_INTERSECTION        = 7;
@@ -1061,6 +1061,16 @@ export class Plane {
     }
 
     /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {number}
+     */
+    calculate_signed_distance(x, y, z) {
+        return x * this.normal_x + y * this.normal_y + z * this.normal_z + this.distance;
+    }
+
+    /**
      * @param {Vector3} point
      * @returns {Vector3}
      */
@@ -1619,397 +1629,6 @@ export class Matrix4 {
     }
 }
 
-export class Vertex {
-    /**
-     * @param {Vector3} position
-     * @param {Vector3} normal
-     * @param {Vector4} colour
-     * @param {Vector3} texture_coords
-     * @param {number} texture_id
-     * @constructor
-     */
-    constructor(
-        position = new Vector3(0, 0, 0),
-        normal = new Vector3(0, 0, 0),
-        colour = new Vector4(0, 0, 0, 0),
-        texture_coords = new Vector3(0, 0, 0),
-        texture_id = 0,
-    ) {
-        /** @type {Vector3} */
-        this.position = position;
-        /** @type {Vector3} */
-        this.normal = normal;
-        /** @type {Vector4} */
-        this.colour = colour;
-        /** @type {Vector3} */
-        this.texture_coords = texture_coords;
-        /** @type {number} */
-        this.texture_id = texture_id;
-    }
-}
-
-export class PolygonFace {
-    /**
-     * @param {number[]} indices
-     * @param {Plane} plane
-     * @constructor
-     */
-    constructor(indices, plane) {
-        this.indices = indices;
-        this.plane = plane;
-    }
-}
-
-export class PolygonMesh {
-    /**
-     * @param {Vertex[]} vertices
-     * @param {PolygonFace[]} faces
-     * @constructor
-     */
-    constructor(vertices, faces) {
-        this.vertices = vertices;
-        this.faces = faces;
-    }
-
-    /**
-     * @returns {string}
-     */
-    serialize_to_obj() {
-        const string = "";
-
-        for (let idx = 0; idx < this.vertices.length; ++idx) {
-            const position = this.vertices[idx].position;
-            string += `v\t${position.x}\t${position.y}\t${position.z}\n`;
-        }
-
-        for (let idx = 0; idx < this.faces.length; ++idx) {
-            const indices = this.faces[idx].indices;
-            string += `v\t${indices.join('\t')}\n`;
-        }
-
-        return string;
-    }
-    
-    /**
-     * @returns {Uint8Array}
-     */
-    serialize_to_stl() {
-        const buffer = new ArrayBuffer(84 + 50 * this.faces.length);
-        const view = new DataView(buffer);
-
-        view.setUint32(80, this.faces.length, true);
-
-        for (let offset = 84, idx = 0; idx < this.faces.length; ++idx) {
-            const face = this.faces[idx];
-            
-            if (face.indices.length > 3) {
-                return null;
-            }
-
-            const vertex0 = this.vertices[face.indices[0]];
-            const vertex1 = this.vertices[face.indices[1]];
-            const vertex2 = this.vertices[face.indices[2]];
-
-            view.setFloat32(offset, face.plane.normal_x, true); offset += 4;
-            view.setFloat32(offset, face.plane.normal_y, true); offset += 4;
-            view.setFloat32(offset, face.plane.normal_z, true); offset += 4;
-
-            view.setFloat32(offset, vertex0.position.x, true); offset += 4;
-            view.setFloat32(offset, vertex0.position.y, true); offset += 4;
-            view.setFloat32(offset, vertex0.position.z, true); offset += 4;
-
-            view.setFloat32(offset, vertex1.position.x, true); offset += 4;
-            view.setFloat32(offset, vertex1.position.y, true); offset += 4;
-            view.setFloat32(offset, vertex1.position.z, true); offset += 4;
-
-            view.setFloat32(offset, vertex2.position.x, true); offset += 4;
-            view.setFloat32(offset, vertex2.position.y, true); offset += 4;
-            view.setFloat32(offset, vertex2.position.z, true); offset += 4;
-
-            view.setUint16(offset, 0, true); offset += 2;
-        }
-
-        return new Uint8Array(buffer);
-    }
-}
-
-export class Polygon {
-    constructor(positions) {
-        this.positions = positions;
-    }
-}
-
-export class SignedDistanceField {
-    static temp_vector0 = new Vector3();
-
-    /**
-     * @param {BoundingBox} bounding_box
-     * @constructor
-     */
-    constructor(bounding_box = new BoundingBox()) {
-        /** @type {number} */
-        this.kind = SIGNED_DISTANCE_FIELD_KIND_UNKNOWN;
-        /** @type {BoundingBox} */
-        this.bounding_box = bounding_box;
-    }
-
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @returns {number}
-     */
-    calculate_signed_distance(x, y, z) {
-        throw new Error("calculate_signed_distance is unimplemented!");
-    }
-
-    /**
-     * @returns {string}
-     */
-    convert_to_glsl_expression() {
-        throw new Error("convert_to_glsl_source is unimplemented!");
-    }
-
-    /**
-     * @returns {string}
-     */
-    convert_to_glsl_definition() {
-        throw new Error("convert_to_glsl_definition is unimplemented!");
-    }
-
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @param {Vector3} out_vector
-     * @returns {Vector3}
-     */
-    calculate_gradient(x, y, z, out_vector = new Vector3(0, 0, 0)) {
-        const distance_max_x = this.calculate_signed_distance(x + EPSILON, y, z);
-        const distance_min_x = this.calculate_signed_distance(x - EPSILON, y, z);
-        const distance_max_y = this.calculate_signed_distance(x, y + EPSILON, z);
-        const distance_min_y = this.calculate_signed_distance(x, y - EPSILON, z);
-        const distance_max_z = this.calculate_signed_distance(x, y, z + EPSILON);
-        const distance_min_z = this.calculate_signed_distance(x, y, z - EPSILON);
-        out_vector.set((distance_max_x - distance_min_x) * INV_TWO_EPSILON,
-                       (distance_max_y - distance_min_y) * INV_TWO_EPSILON,
-                       (distance_max_z - distance_min_z) * INV_TWO_EPSILON);
-        return out_vector;
-    }
-
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @param {Vector3} out_vector
-     * @returns {Vector3}
-     */
-    calculate_closest_surface_vector(x, y, z, out_vector = new Vector3(0, 0, 0)) {
-        const distance = this.calculate_signed_distance(x, y, z);
-        const delta    = this.calculate_gradient(x, y, z, out_vector).setLength(distance);
-        return out_vector.set(x - delta.x, y - delta.y, z - delta.z);
-    }
-
-    /**
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldUnion}
-     */
-    union(... others) {
-        return new SignedDistanceFieldUnion(this, ... others);
-    }
-
-    /**
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldDifference}
-     */
-    difference(... others) {
-        return new SignedDistanceFieldDifference(this, ... others);
-    }
-
-    /**
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldIntersection}
-     */
-    intersection(... others) {
-        return new SignedDistanceFieldIntersection(this, ... others);
-    }
-
-    /**
-     * @param {number} smoothness
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldUnionSmooth}
-     */
-    union_smooth(smoothness, ... others) {
-        return new SignedDistanceFieldUnionSmooth(smoothness, this, ... others);
-    }
-
-    /**
-     * @param {number} smoothness
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldDifferenceSmooth}
-     */
-    difference_smooth(smoothness, ... others) {
-        return new SignedDistanceFieldDifferenceSmooth(smoothness, this, ... others);
-    }
-
-    /**
-     * @param {number} smoothness
-     * @param {SignedDistanceField[]} others
-     * @returns {SignedDistanceFieldIntersectionSmooth}
-     */
-    intersection_smooth(smoothness, ... others) {
-        return new SignedDistanceFieldIntersectionSmooth(smoothness, this, ... others);
-    }
-
-    /**
-     * @param {Matrix4} matrix
-     * @returns {SignedDistanceFieldTransform}
-     */
-    transform(matrix) {
-        return new SignedDistanceFieldTransform(this, matrix);
-    }
-
-    /**
-     * @param {number} angle
-     * @returns {SignedDistanceFieldTransform}
-     */
-    rotate_x(angle) {
-        return this.transform(Matrix4.rotate_x(angle));
-    }
-
-    /**
-     * @param {number} angle
-     * @returns {SignedDistanceFieldTransform}
-     */
-    rotate_y(angle) {
-        return this.transform(Matrix4.rotate_y(angle));
-    }
-
-    /**
-     * @param {number} angle
-     * @returns {SignedDistanceFieldTransform}
-     */
-    rotate_z(angle) {
-        return this.transform(Matrix4.rotate_z(angle));
-    }
-
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @returns {SignedDistanceFieldTranslate}
-     */
-    translate(x, y, z) {
-        return new SignedDistanceFieldTranslate(x, y, z, this);
-    }
-
-    /**
-     * @param {number} radius
-     * @returns {SignedDistanceFieldOffset}
-     */
-    offset(radius) {
-        return new SignedDistanceFieldOffset(this, radius);
-    }
-
-    /**
-     * @param {number} step_count
-     * @returns {PolygonMesh}
-     */
-    surface_nets(step_count = 200) {
-        const step_size             = this.bounding_box.largest_side() / step_count;
-        const bounding_box          = this.bounding_box.clone().optimize_smallest_grid_size(step_size);
-        const cube_size             = bounding_box.minimal_grid_size(step_size);
-        const sample_count_x        = Math.round(bounding_box.size_x() / cube_size) + 2;
-        const sample_count_y        = Math.round(bounding_box.size_y() / cube_size) + 2;
-        const sample_count_z        = Math.round(bounding_box.size_z() / cube_size) + 2;
-        const half_size             = cube_size / 2;
-
-        console.log(cube_size);
-        console.log(this.bounding_box.largest_side() / cube_size);
-
-        let index = 0;
-        const vertices = [], faces = [];
-        for (let idx0 = 0, x = bounding_box.min_x - half_size; idx0 < sample_count_x; ++idx0, x += cube_size) {
-            for (let idx1 = 0, y = bounding_box.min_y - half_size; idx1 < sample_count_y; ++idx1, y += cube_size) {
-                for (let idx2 = 0, z = bounding_box.min_z - half_size; idx2 < sample_count_z; ++idx2, z += cube_size, ++index) {
-                    const sample_origin = this.calculate_signed_distance(x, y, z);
-                    const sample_x      = this.calculate_signed_distance(x + cube_size, y, z);
-                    const sample_y      = this.calculate_signed_distance(x, y + cube_size, z);
-                    const sample_z      = this.calculate_signed_distance(x, y, z + cube_size);
-
-                    if ((sample_origin < 0) != (sample_x < 0)) {
-                        const index = vertices.length;
-                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z - half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z - half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z + half_size)));
-                        if (sample_origin < 0) {
-                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
-                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
-                        }
-                        else {
-                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
-                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
-                        }
-                    }
-
-                    if ((sample_origin < 0) != (sample_y < 0)) {
-                        const index = vertices.length;
-                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z - half_size)));
-                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z - half_size)));
-                        if (sample_origin < 0) {
-                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
-                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
-                        }
-                        else {
-                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
-                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
-                        }
-                    }
-
-                    if ((sample_origin < 0) != (sample_z < 0)) {
-                        const index = vertices.length;
-                        vertices.push(new Vertex(new Vector3(x - half_size, y - half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
-                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z + half_size)));
-                        if (sample_origin < 0) {
-                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
-                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
-                        }
-                        else {
-                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
-                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
-                        }
-                    }
-                }
-            }
-        }
-
-        for (let idx = 0; idx < vertices.length; ++idx) {
-            const position = vertices[idx].position;
-            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
-            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
-            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
-            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
-        }
-
-        for (let idx = 0; idx < faces.length; ++idx) {
-            const vertex0 = vertices[faces[idx].indices[0]];
-            const vertex1 = vertices[faces[idx].indices[1]];
-            const vertex2 = vertices[faces[idx].indices[2]];
-            vertex0.normal = this.calculate_gradient(vertex0.position.x, vertex0.position.y, vertex0.position.z).normalize();
-            vertex1.normal = this.calculate_gradient(vertex1.position.x, vertex1.position.y, vertex1.position.z).normalize();
-            vertex2.normal = this.calculate_gradient(vertex2.position.x, vertex2.position.y, vertex2.position.z).normalize();
-            faces[idx].plane = Plane.from_points(vertex0.position, vertex1.position, vertex2.position);
-        }
-
-        return new PolygonMesh(vertices, faces);
-    }
-}
-
 export class BoundingBox {
     /**
      * @param {SignedDistanceField[]} fields
@@ -2308,17 +1927,394 @@ export class BoundingBox {
     }
 }
 
+export class Vertex {
+    /**
+     * @param {Vector3} position
+     * @param {Vector3} normal
+     * @param {Vector4} colour
+     * @param {Vector3} texture_coords
+     * @param {number} texture_id
+     * @constructor
+     */
+    constructor(
+        position = new Vector3(0, 0, 0),
+        normal = new Vector3(0, 0, 0),
+        colour = new Vector4(0, 0, 0, 0),
+        texture_coords = new Vector3(0, 0, 0),
+        texture_id = 0,
+    ) {
+        /** @type {Vector3} */
+        this.position = position;
+        /** @type {Vector3} */
+        this.normal = normal;
+        /** @type {Vector4} */
+        this.colour = colour;
+        /** @type {Vector3} */
+        this.texture_coords = texture_coords;
+        /** @type {number} */
+        this.texture_id = texture_id;
+    }
+}
+
+export class PolygonFace {
+    /**
+     * @param {number[]} indices
+     * @param {Plane} plane
+     * @constructor
+     */
+    constructor(indices, plane) {
+        this.indices = indices;
+        this.plane = plane;
+    }
+}
+
+export class PolygonMesh {
+    /**
+     * @param {Vertex[]} vertices
+     * @param {PolygonFace[]} faces
+     * @constructor
+     */
+    constructor(vertices, faces) {
+        this.vertices = vertices;
+        this.faces = faces;
+    }
+
+    /**
+     * @returns {string}
+     */
+    serialize_to_obj() {
+        const string = "";
+
+        for (let idx = 0; idx < this.vertices.length; ++idx) {
+            const position = this.vertices[idx].position;
+            string += `v\t${position.x}\t${position.y}\t${position.z}\n`;
+        }
+
+        for (let idx = 0; idx < this.faces.length; ++idx) {
+            const indices = this.faces[idx].indices;
+            string += `v\t${indices.join('\t')}\n`;
+        }
+
+        return string;
+    }
+    
+    /**
+     * @returns {Uint8Array}
+     */
+    serialize_to_stl() {
+        const buffer = new ArrayBuffer(84 + 50 * this.faces.length);
+        const view = new DataView(buffer);
+
+        view.setUint32(80, this.faces.length, true);
+
+        for (let offset = 84, idx = 0; idx < this.faces.length; ++idx) {
+            const face = this.faces[idx];
+            
+            if (face.indices.length > 3) {
+                return null;
+            }
+
+            const vertex0 = this.vertices[face.indices[0]];
+            const vertex1 = this.vertices[face.indices[1]];
+            const vertex2 = this.vertices[face.indices[2]];
+
+            view.setFloat32(offset, face.plane.normal_x, true); offset += 4;
+            view.setFloat32(offset, face.plane.normal_y, true); offset += 4;
+            view.setFloat32(offset, face.plane.normal_z, true); offset += 4;
+
+            view.setFloat32(offset, vertex0.position.x, true); offset += 4;
+            view.setFloat32(offset, vertex0.position.y, true); offset += 4;
+            view.setFloat32(offset, vertex0.position.z, true); offset += 4;
+
+            view.setFloat32(offset, vertex1.position.x, true); offset += 4;
+            view.setFloat32(offset, vertex1.position.y, true); offset += 4;
+            view.setFloat32(offset, vertex1.position.z, true); offset += 4;
+
+            view.setFloat32(offset, vertex2.position.x, true); offset += 4;
+            view.setFloat32(offset, vertex2.position.y, true); offset += 4;
+            view.setFloat32(offset, vertex2.position.z, true); offset += 4;
+
+            view.setUint16(offset, 0, true); offset += 2;
+        }
+
+        return new Uint8Array(buffer);
+    }
+}
+
+export class Polygon {
+    constructor(positions) {
+        this.positions = positions;
+    }
+}
+
+export class SignedDistanceField {
+    static temp_vector0 = new Vector3();
+
+    /**
+     * @param {BoundingBox} bounding_box
+     * @constructor
+     */
+    constructor(bounding_box = new BoundingBox()) {
+        /** @type {number} */
+        this.kind = SIGNED_DISTANCE_FIELD_KIND_UNKNOWN;
+        /** @type {BoundingBox} */
+        this.bounding_box = bounding_box;
+    }
+
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {number}
+     */
+    calculate_signed_distance(x, y, z) {
+        throw new Error("calculate_signed_distance is unimplemented!");
+    }
+
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {Vector3} out_vector
+     * @returns {Vector3}
+     */
+    calculate_gradient(x, y, z, out_vector = new Vector3(0, 0, 0)) {
+        const distance_max_x = this.calculate_signed_distance(x + EPSILON, y, z);
+        const distance_min_x = this.calculate_signed_distance(x - EPSILON, y, z);
+        const distance_max_y = this.calculate_signed_distance(x, y + EPSILON, z);
+        const distance_min_y = this.calculate_signed_distance(x, y - EPSILON, z);
+        const distance_max_z = this.calculate_signed_distance(x, y, z + EPSILON);
+        const distance_min_z = this.calculate_signed_distance(x, y, z - EPSILON);
+        out_vector.set((distance_max_x - distance_min_x) * INV_TWO_EPSILON,
+                       (distance_max_y - distance_min_y) * INV_TWO_EPSILON,
+                       (distance_max_z - distance_min_z) * INV_TWO_EPSILON);
+        return out_vector;
+    }
+
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {Vector3} out_vector
+     * @returns {Vector3}
+     */
+    calculate_closest_surface_vector(x, y, z, out_vector = new Vector3(0, 0, 0)) {
+        const distance = this.calculate_signed_distance(x, y, z);
+        const delta    = this.calculate_gradient(x, y, z, out_vector).setLength(distance);
+        return out_vector.set(x - delta.x, y - delta.y, z - delta.z);
+    }
+
+    /**
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldUnion}
+     */
+    union(... others) {
+        return new SignedDistanceFieldUnion(this, ... others);
+    }
+
+    /**
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldDifference}
+     */
+    difference(... others) {
+        return new SignedDistanceFieldDifference(this, ... others);
+    }
+
+    /**
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldIntersection}
+     */
+    intersection(... others) {
+        return new SignedDistanceFieldIntersection(this, ... others);
+    }
+
+    /**
+     * @param {number} smoothness
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldUnionSmooth}
+     */
+    union_smooth(smoothness, ... others) {
+        return new SignedDistanceFieldUnionSmooth(smoothness, this, ... others);
+    }
+
+    /**
+     * @param {number} smoothness
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldDifferenceSmooth}
+     */
+    difference_smooth(smoothness, ... others) {
+        return new SignedDistanceFieldDifferenceSmooth(smoothness, this, ... others);
+    }
+
+    /**
+     * @param {number} smoothness
+     * @param {SignedDistanceField[]} others
+     * @returns {SignedDistanceFieldIntersectionSmooth}
+     */
+    intersection_smooth(smoothness, ... others) {
+        return new SignedDistanceFieldIntersectionSmooth(smoothness, this, ... others);
+    }
+
+    /**
+     * @param {Matrix4} matrix
+     * @returns {SignedDistanceFieldTransform}
+     */
+    transform(matrix) {
+        return new SignedDistanceFieldTransform(this, matrix);
+    }
+
+    /**
+     * @param {number} angle
+     * @returns {SignedDistanceFieldTransform}
+     */
+    rotate_x(angle) {
+        return this.transform(Matrix4.rotate_x(angle));
+    }
+
+    /**
+     * @param {number} angle
+     * @returns {SignedDistanceFieldTransform}
+     */
+    rotate_y(angle) {
+        return this.transform(Matrix4.rotate_y(angle));
+    }
+
+    /**
+     * @param {number} angle
+     * @returns {SignedDistanceFieldTransform}
+     */
+    rotate_z(angle) {
+        return this.transform(Matrix4.rotate_z(angle));
+    }
+
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {SignedDistanceFieldTranslate}
+     */
+    translate(x, y, z) {
+        return new SignedDistanceFieldTranslate(x, y, z, this);
+    }
+
+    /**
+     * @param {number} radius
+     * @returns {SignedDistanceFieldOffset}
+     */
+    offset(radius) {
+        return new SignedDistanceFieldOffset(this, radius);
+    }
+
+    /**
+     * @param {number} step_count
+     * @returns {PolygonMesh}
+     */
+    surface_nets(step_count = 200) {
+        const step_size             = this.bounding_box.largest_side() / step_count;
+        const bounding_box          = this.bounding_box.clone().optimize_smallest_grid_size(step_size);
+        const cube_size             = bounding_box.minimal_grid_size(step_size);
+        const sample_count_x        = Math.round(bounding_box.size_x() / cube_size) + 2;
+        const sample_count_y        = Math.round(bounding_box.size_y() / cube_size) + 2;
+        const sample_count_z        = Math.round(bounding_box.size_z() / cube_size) + 2;
+        const half_size             = cube_size / 2;
+
+        console.log(cube_size);
+        console.log(this.bounding_box.largest_side() / cube_size);
+
+        let index = 0;
+        const vertices = [], faces = [];
+        for (let idx0 = 0, x = bounding_box.min_x - half_size; idx0 < sample_count_x; ++idx0, x += cube_size) {
+            for (let idx1 = 0, y = bounding_box.min_y - half_size; idx1 < sample_count_y; ++idx1, y += cube_size) {
+                for (let idx2 = 0, z = bounding_box.min_z - half_size; idx2 < sample_count_z; ++idx2, z += cube_size, ++index) {
+                    const sample_origin = this.calculate_signed_distance(x, y, z);
+                    const sample_x      = this.calculate_signed_distance(x + cube_size, y, z);
+                    const sample_y      = this.calculate_signed_distance(x, y + cube_size, z);
+                    const sample_z      = this.calculate_signed_distance(x, y, z + cube_size);
+
+                    if ((sample_origin < 0) != (sample_x < 0)) {
+                        const index = vertices.length;
+                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z - half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z - half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z + half_size)));
+                        if (sample_origin < 0) {
+                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
+                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
+                        }
+                        else {
+                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
+                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
+                        }
+                    }
+
+                    if ((sample_origin < 0) != (sample_y < 0)) {
+                        const index = vertices.length;
+                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z - half_size)));
+                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z - half_size)));
+                        if (sample_origin < 0) {
+                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
+                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
+                        }
+                        else {
+                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
+                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
+                        }
+                    }
+
+                    if ((sample_origin < 0) != (sample_z < 0)) {
+                        const index = vertices.length;
+                        vertices.push(new Vertex(new Vector3(x - half_size, y - half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y - half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x + half_size, y + half_size, z + half_size)));
+                        vertices.push(new Vertex(new Vector3(x - half_size, y + half_size, z + half_size)));
+                        if (sample_origin < 0) {
+                            faces.push(new PolygonFace([ index + 0, index + 1, index + 2 ], null));
+                            faces.push(new PolygonFace([ index + 2, index + 3, index + 0 ], null));
+                        }
+                        else {
+                            faces.push(new PolygonFace([ index + 2, index + 1, index + 0 ], null));
+                            faces.push(new PolygonFace([ index + 0, index + 3, index + 2 ], null));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let idx = 0; idx < vertices.length; ++idx) {
+            const position = vertices[idx].position;
+            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
+            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
+            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
+            this.calculate_closest_surface_vector(position.x, position.y, position.z, position);
+        }
+
+        for (let idx = 0; idx < faces.length; ++idx) {
+            const vertex0 = vertices[faces[idx].indices[0]];
+            const vertex1 = vertices[faces[idx].indices[1]];
+            const vertex2 = vertices[faces[idx].indices[2]];
+            vertex0.normal = this.calculate_gradient(vertex0.position.x, vertex0.position.y, vertex0.position.z).normalize();
+            vertex1.normal = this.calculate_gradient(vertex1.position.x, vertex1.position.y, vertex1.position.z).normalize();
+            vertex2.normal = this.calculate_gradient(vertex2.position.x, vertex2.position.y, vertex2.position.z).normalize();
+            faces[idx].plane = Plane.from_points(vertex0.position, vertex1.position, vertex2.position);
+        }
+
+        return new PolygonMesh(vertices, faces);
+    }
+}
+
 export class SignedDistanceFieldSphere extends SignedDistanceField {
-    constructor(center = new Vector3(0, 0, 0), radius = 5) {
+    constructor(center_x = 0, center_y = 0, center_z = 0, radius = 5) {
         super();
         /** @type {number} */
         this.kind = SIGNED_DISTANCE_FIELD_KIND_SPHERE;
         /** @type {number} */
-        this.center_x = center[0];
+        this.center_x = center_x;
         /** @type {number} */
-        this.center_y = center[1];
+        this.center_y = center_y;
         /** @type {number} */
-        this.center_z = center[2];
+        this.center_z = center_z;
         /** @type {number} */
         this.radius   = radius;
         /** @type {BoundingBox} */
@@ -2347,16 +2343,16 @@ export class SignedDistanceFieldSphere extends SignedDistanceField {
 }
 
 export class SignedDistanceFieldCylinder extends SignedDistanceField {
-    constructor(center = new Vector3(0, 0, 0), height = 20, radius = 10) {
+    constructor(center_x = 0, center_y = 0, center_z = 0, height = 20, radius = 10) {
         super();
         /** @type {number} */
         this.kind = SIGNED_DISTANCE_FIELD_KIND_CYLINDER;
         /** @type {number} */
-        this.center_x  = center[0];
+        this.center_x = center_x;
         /** @type {number} */
-        this.center_y  = center[1];
+        this.center_y = center_y;
         /** @type {number} */
-        this.center_z  = center[2];
+        this.center_z = center_z;
         /** @type {number} */
         this.radius      = radius;
         /** @type {number} */
@@ -2390,19 +2386,41 @@ export class SignedDistanceFieldCylinder extends SignedDistanceField {
     }
 }
 
+export class SignedDistanceFieldPlane extends SignedDistanceField {
+    constructor(plane) {
+        super();
+        /** @type {number} */
+        this.kind = SIGNED_DISTANCE_FIELD_KIND_PLANE;
+        /** @type {Plane} */
+        this.plane = plane;
+        /** @type {BoundingBox} */
+        this.bounding_box = new BoundingBox(0, 0, 0, 0, 0, 0);
+    }
+
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {number}
+     */
+    calculate_signed_distance(x, y, z) {
+        return this.plane.calculate_signed_distance(x, y, z);
+    }
+}
+
 export class SignedDistanceFieldCube extends SignedDistanceField {
-    constructor(center = [0, 0, 0], size = 10, corner_radius = 0) {
+    constructor(center_x = 0, center_y = 0, center_z = 0, size = 10, corner_radius = 0) {
         super();
         /** @type {number} */
         this.kind = SIGNED_DISTANCE_FIELD_KIND_CUBE;
         /** @type {number} */
-        this.center_x    = center[0];
+        this.center_x = center_x;
         /** @type {number} */
-        this.center_y    = center[1];
+        this.center_y = center_y;
         /** @type {number} */
-        this.center_z    = center[2];
+        this.center_z = center_z;
         /** @type {number} */
-        this.half_size     = size / 2;
+        this.half_size = size / 2;
         /** @type {number} */
         this.corner_radius = corner_radius;
         /** @type {BoundingBox} */
@@ -2434,23 +2452,23 @@ export class SignedDistanceFieldCube extends SignedDistanceField {
     }
 }
 
-export class SignedDistanceFieldCuboid extends SignedDistanceField {
-    constructor(center = [0, 0, 0], size = [ 20, 20, 20 ], corner_radius = 0) {
+export class SignedDistanceFieldBox extends SignedDistanceField {
+    constructor(center_x = 0, center_y = 0, center_z = 0, size_x = 20, size_y = 20, size_z = 20, corner_radius = 0) {
         super();
         /** @type {number} */
-        this.kind = SIGNED_DISTANCE_FIELD_KIND_CUBOID;
+        this.kind = SIGNED_DISTANCE_FIELD_KIND_BOX;
         /** @type {number} */
-        this.center_x    = center[0];
+        this.center_x = center_x;
         /** @type {number} */
-        this.center_y    = center[1];
+        this.center_y = center_y;
         /** @type {number} */
-        this.center_z    = center[2];
+        this.center_z = center_z;
         /** @type {number} */
-        this.half_size_x   = 0.5 * size[0];
+        this.half_size_x = 0.5 * size_x;
         /** @type {number} */
-        this.half_size_y   = 0.5 * size[1];
+        this.half_size_y = 0.5 * size_y;
         /** @type {number} */
-        this.half_size_z   = 0.5 * size[2];
+        this.half_size_z = 0.5 * size_z;
         /** @type {number} */
         this.corner_radius = corner_radius;
         /** @type {BoundingBox} */
@@ -2785,18 +2803,26 @@ export class SignedDistanceFieldOffset extends SignedDistanceField {
     }
 }
 
-export function cube({ center = [0, 0, 0], size = 10, corner_radius }) {
-    return new SignedDistanceFieldCube(center, size, corner_radius);
+export function cube({ center = [0, 0, 0], size = 10, corner_radius = 0 }) {
+    return new SignedDistanceFieldCube(center[0], center[1], center[2], size, corner_radius);
 }
 
-export function cuboid({ center = [0, 0, 0], size = [ 20, 20, 20 ], corner_radius = 0 }) {
-    return new SignedDistanceFieldCuboid(center, size, corner_radius);
+export function box({ center = [0, 0, 0], size = [ 20, 20, 20 ], corner_radius = 0 }) {
+    return new SignedDistanceFieldBox(center[0], center[1], center[2], size[0], size[1], size[2], corner_radius);
 }
 
 export function sphere({ center = [0, 0, 0], radius = 5 }) {
-    return new SignedDistanceFieldSphere(center, radius);
+    return new SignedDistanceFieldSphere(center[0], center[1], center[2], radius);
 }
 
 export function cylinder({ center = [ 0, 0, 0 ], height = 20, radius = 10 }) {
-    return new SignedDistanceFieldCylinder(center, height, radius);
+    return new SignedDistanceFieldCylinder(center[0], center[1], center[2], height, radius);
+}
+
+export function plane({ center = [0, 0, 0] }) {
+    return new SignedDistanceFieldPlane(center[0], center[1], center[2], height, radius);
+}
+
+export function torus({ center = [0, 0, 0] }) {
+    return new SignedDistanceFieldPlane(center[0], center[1], center[2], height, radius);
 }
