@@ -4,7 +4,7 @@ A Signed Distance Field 3D modeler implemented using JavaScript.
 
 ## Overview
 
-Signed Distance Fields (SDFs) represent 3D surfaces as implicit functions, which can be used to define and manipulate complex shapes. This library provides tools to perform boolean operations (intersection, union, difference) on SDFs and for convertion to meshes using difference algorithms.
+Signed Distance Fields (SDFs) represent 3D surfaces as implicit functions, which can be used to define and manipulate complex shapes. This library provides tools to perform boolean operations (intersection, union, difference) on SDFs and convertion to meshes using different algorithms.
 
 Key features include:
 

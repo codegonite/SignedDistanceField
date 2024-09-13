@@ -1,14 +1,14 @@
-import { time, timeEnd } from "node:console";
-import * as sdf from "../src/index.mjs";
+import * as sdf from "../src/index.js";
 
-let model = sdf.cube({ center: [0,0,0], size: 20 });
-model = model.intersection_smooth(0.5, sdf.sphere({ center: [0, 0, 0], radius: 13 }));
-model = model.difference_smooth(0.5,
-    sdf.cylinder({ center: [0, 0, 0], height: 20, radius: 6 }),
-    sdf.cylinder({ center: [0, 0, 0], height: 20, radius: 6 }).rotate_x(Math.PI / 2),
-    sdf.cylinder({ center: [0, 0, 0], height: 20, radius: 6 }).rotate_y(Math.PI / 2),
-);
+const field = sdf.box(20, 20, 20)
+    .intersectionSmooth(0.5, sdf.sphere(13))
+    .differenceSmooth(0.5,
+        sdf.cylinder(6, 20),
+        sdf.cylinder(6, 20).rotateX(Math.PI / 2),
+        sdf.cylinder(6, 20).rotateY(Math.PI / 2),
+    );
 
-const mesh = model.surface_nets(200);
-const buffer = mesh.serialize_to_stl();
+const mesh = sdf.triangulateSignedDistanceField(field);
+const buffer = sdf.convertToSTL(mesh);
+
 console.log(buffer);
