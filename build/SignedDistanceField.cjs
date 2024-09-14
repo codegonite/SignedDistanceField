@@ -1,5 +1,7 @@
-export const EPSILON = 1e-6;
-export const INV_TWO_EPSILON = 1 / (2 * EPSILON);
+'use strict';
+
+const EPSILON = 1e-6;
+const INV_TWO_EPSILON = 1 / (2 * EPSILON);
 
 const SAMPLE_OCTREE_KIND_FULL    = 0x01;
 const SAMPLE_OCTREE_KIND_EMPTY   = 0x02;
@@ -17,7 +19,7 @@ const STL_BYTES_PER_TRIANGLE = 50;
 
 const INTERSECTION_DEPTH_MAX = 256;
 
-export class Vector2 {
+class Vector2 {
     static fromObject(v) { return new Vector2(v.x, v.y); }
     static fromArray(v)  { return new Vector2(v[0], v[1]); }
 
@@ -241,7 +243,7 @@ export class Vector2 {
     }
 }
 
-export class Vector3 {
+class Vector3 {
     static fromObject(v) { return new Vector3(v.x, v.y, v.z); }
     static fromArray(v)  { return new Vector3(v[0], v[1], v[2]); }
 
@@ -512,7 +514,7 @@ export class Vector3 {
     }
 }
 
-export class Vector4 {
+class Vector4 {
     static fromObject(v) { return new Vector4(v.x, v.y, v.z, v.w); }
     static fromArray(v)  { return new Vector4(v[0], v[1], v[2], v[3]); }
 
@@ -702,7 +704,7 @@ export class Vector4 {
 
     cross(other) {
         const x0 = this.x, y0 = this.y, z0 = this.z, w0 = this.w;
-        const x1 = other.x, y1 = other.y, z1 = other.z, w1 = other.w;
+        const x1 = other.x, y1 = other.y, z1 = other.z; other.w;
         this.x = y0 * z1 - y1 * z0;
         this.y = z0 * x1 - z1 * x0;
         this.z = x0 * y1 - x1 * y0;
@@ -792,7 +794,7 @@ export class Vector4 {
 
     crossVectors(v0, v1) {
         const x0 = v0.x, y0 = v0.y, z0 = v0.z, w0 = v0.w;
-        const x1 = v1.x, y1 = v1.y, z1 = v1.z, w1 = v1.w;
+        const x1 = v1.x, y1 = v1.y, z1 = v1.z; v1.w;
         this.x = y0 * z1 - y1 * z0;
         this.y = z0 * x1 - z1 * x0;
         this.z = x0 * y1 - x1 * y0;
@@ -801,7 +803,7 @@ export class Vector4 {
     }
 }
 
-export class BoundingBox2 {
+class BoundingBox2 {
     constructor(min_x = 0, min_y = 0, max_x = 0, max_y = 0) {
         this.min_x = min_x;
         this.max_x = max_x;
@@ -913,7 +915,7 @@ export class BoundingBox2 {
     }
 }
 
-export class BoundingBox3 {
+class BoundingBox3 {
     constructor(min_x = 0, min_y = 0, min_z = 0, max_x = 0, max_y = 0, max_z = 0) {
         this.min_x = min_x;
         this.min_y = min_y;
@@ -1054,7 +1056,7 @@ export class BoundingBox3 {
     }
 }
 
-export class Plane {
+class Plane {
     constructor(normal_x, normal_y, normal_z, distance) {
         this.normal_x = normal_x;
         this.normal_y = normal_y;
@@ -1207,7 +1209,7 @@ export class Plane {
     }
 }
 
-export class Matrix2 {
+class Matrix2 {
     static identity() {
         return new Matrix2(1, 0,
                            0, 1);
@@ -1362,7 +1364,7 @@ export class Matrix2 {
     }
 }
 
-export class Matrix3 {
+class Matrix3 {
     static identity() {
         return new Matrix3(1, 0, 0,
                            0, 1, 0,
@@ -1763,7 +1765,7 @@ export class Matrix3 {
     }
 }
 
-export class Matrix4 {
+class Matrix4 {
     static identity() {
         return new Matrix4(1, 0, 0, 0,
                            0, 1, 0, 0,
@@ -2374,13 +2376,13 @@ export class Matrix4 {
     }
 }
 
-export function clamp(value, min, max) {
+function clamp(value, min, max) {
     if (value > max) return max;
     if (value < min) return min;
     return value;
 }
 
-export function gcf(a, b) {
+function gcf(a, b) {
     if (a < b) {
         return gcf(b, a);
     }
@@ -2392,19 +2394,19 @@ export function gcf(a, b) {
     return gcf(b, a - Math.floor(a / b) * b);
 }
 
-export function lcm(a, b) {
+function lcm(a, b) {
     return a * b / gcf(a, b);
 }
 
-export function lerp(a, b, t) {
+function lerp(a, b, t) {
     return (b - a) * t + a;
 }
 
-export function smallestGridSize(size_x, size_y, size_z) {
+function smallestGridSize(size_x, size_y, size_z) {
     return gcf(size_x, gcf(size_y, size_z));
 }
 
-export function closestEvenlyDivisibleGridSize(size_x, size_y, size_z, grid_size) {
+function closestEvenlyDivisibleGridSize(size_x, size_y, size_z, grid_size) {
     if (size_x == size_y && size_x == size_z) {
         const outside_volume = size_x / grid_size;
         const inside_volume = Math.floor(outside_volume);
@@ -2420,21 +2422,21 @@ export function closestEvenlyDivisibleGridSize(size_x, size_y, size_z, grid_size
     return Math.max(Math.floor(grid_size / smallest_grid_size), 1) * smallest_grid_size;
 }
 
-export function bestDivisibleGridSize(size_x, size_y, size_z, division_count) {
+function bestDivisibleGridSize(size_x, size_y, size_z, division_count) {
     const grid_size = Math.max(size_x, size_y, size_z) / division_count;
     return closestEvenlyDivisibleGridSize(size_x, size_y, size_z, grid_size);
 }
 
-export function distanceFromOrigin(x, y, z) {
+function distanceFromOrigin(x, y, z) {
     return Math.sqrt(x*x + y*y + z*z);
 }
 
-export function distanceSquared(x0, y0, z0, x1, y1, z1) {
+function distanceSquared(x0, y0, z0, x1, y1, z1) {
     const dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
     return dx * dx + dy * dy + dz * dz;
 }
 
-export class Vertex {
+class Vertex {
     constructor(
         position = new Vector3(0, 0, 0),
         normal = new Vector3(0, 0, 0),
@@ -2450,14 +2452,14 @@ export class Vertex {
     }
 }
 
-export class TriangleMesh {
+class TriangleMesh {
     constructor(vertices = [], indices = []) {
         this.vertices = vertices;
         this.indices = indices;
     }
 }
 
-export class PolygonIndices {
+class PolygonIndices {
     constructor(indices = [], plane = new Plane(), colour = null) {
         this.indices = indices;
         this.plane = plane;
@@ -2465,7 +2467,7 @@ export class PolygonIndices {
     }
 }
 
-export class PolygonMesh {
+class PolygonMesh {
     constructor(vertices = [], faces = []) {
         this.vertices = vertices;
         this.faces = faces;
@@ -2528,7 +2530,7 @@ class SampleEdge {
     }
 }
 
-export class SampleOctreeRoot {
+class SampleOctreeRoot {
     constructor(min_x, min_y, min_z, max_x, max_y, max_z, subdivision_count = 1) {
         this.kind  = SAMPLE_OCTREE_KIND_ROOT;
         this.min_x = min_x;
@@ -2745,7 +2747,7 @@ export class SampleOctreeRoot {
     }
 }
 
-export class SampleOctreeLeaf {
+class SampleOctreeLeaf {
     constructor(min_x, min_y, min_z, max_x, max_y, max_z) {
         this.kind  = SAMPLE_OCTREE_KIND_LEAF;
         this.min_x = min_x;
@@ -2779,9 +2781,9 @@ export class SampleOctreeLeaf {
     }
 
     sampleSignedDistanceField(field) {
-        const min_x = this.min_x, max_x = this.max_x, center_x = (max_x + min_x) / 2;
-        const min_y = this.min_y, max_y = this.max_y, center_y = (max_y + min_y) / 2;
-        const min_z = this.min_z, max_z = this.max_z, center_z = (max_z + min_z) / 2;
+        this.min_x; this.max_x;
+        this.min_y; this.max_y;
+        this.min_z; this.max_z;
         const node_state = this.getNodeState();
 
         if (node_state == ALL_SAMPLES_INSIDE) { return _SAMPLE_OCTREE_FULL; }
@@ -2837,19 +2839,19 @@ export class SampleOctreeLeaf {
     }
 }
 
-export class SampleOctreeEmpty {
+class SampleOctreeEmpty {
     constructor() {
         this.kind = SAMPLE_OCTREE_KIND_EMPTY;
     }
 }
 
-export class SampleOctreeFull {
+class SampleOctreeFull {
     constructor() {
         this.kind = SAMPLE_OCTREE_KIND_FULL;
     }
 }
 
-export class SampleOctreeMeshBuilder {
+class SampleOctreeMeshBuilder {
     constructor() {
         this.vertices = [];
         this.indices = [];
@@ -3186,7 +3188,7 @@ export class SampleOctreeMeshBuilder {
     }
 }
 
-export function createSampleOctreeFromField(field, bounding_box, subdivision_count, merge_threshold = null) {
+function createSampleOctreeFromField(field, bounding_box, subdivision_count, merge_threshold = null) {
     return new SampleOctreeRoot(
         bounding_box.min_x,
         bounding_box.min_y,
@@ -3198,7 +3200,7 @@ export function createSampleOctreeFromField(field, bounding_box, subdivision_cou
     ).sampleSignedDistanceField(field, merge_threshold);
 }
 
-export function triangulateSignedDistanceField(field, bounding_box = field.bounding_box, subdivision_count = 8, merge_threshold = 0.0005) {
+function triangulateSignedDistanceField(field, bounding_box = field.bounding_box, subdivision_count = 8, merge_threshold = 0.0005) {
     const tree = new SampleOctreeRoot(
         bounding_box.min_x,
         bounding_box.min_y,
@@ -3213,7 +3215,7 @@ export function triangulateSignedDistanceField(field, bounding_box = field.bound
     return _builder.getMesh();
 }
 
-export class BufferWriter {
+class BufferWriter {
     constructor(buffer) {
         this.view = new DataView(buffer);
         this.offset = 0;
@@ -3235,7 +3237,7 @@ export class BufferWriter {
     }
 }
 
-export function convertToSTL(mesh) {
+function convertToSTL(mesh) {
     if (mesh instanceof TriangleMesh == false) {
         throw new Error("input mesh must be a 'TriangleMesh'!");
     }
@@ -3276,7 +3278,7 @@ export function convertToSTL(mesh) {
     return new Uint8Array(buffer);
 }
 
-export function convertToOBJ(mesh) {
+function convertToOBJ(mesh) {
     if (mesh instanceof TriangleMesh == false) {
         throw new Error("input mesh must be a 'TriangleMesh'!");
     }
@@ -3297,7 +3299,7 @@ export function convertToOBJ(mesh) {
     return output;
 }
 
-export class SignedDistanceField3 {
+class SignedDistanceField3 {
     calculateSignedDistance(x, y, z) {
         throw new Error("calculateSignedDistance is unimplemented!");
     }
@@ -3349,7 +3351,7 @@ export class SignedDistanceField3 {
         const dy = y1 - y0;
         const dz = z1 - z0;
 
-        const length = Math.sqrt(dx*dx + dy*dy + dz*dz)
+        const length = Math.sqrt(dx*dx + dy*dy + dz*dz);
         
         if (length == 0) {
             return null;
@@ -3411,7 +3413,7 @@ export class SignedDistanceField3 {
     }
 }
 
-export class BoxSignedDistanceField3 extends SignedDistanceField3 {
+class BoxSignedDistanceField3 extends SignedDistanceField3 {
     constructor(size_x, size_y, size_z, corner_radius = 0) {
         super();
         this.corner_radius = corner_radius;
@@ -3434,7 +3436,7 @@ export class BoxSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class BoxFrameSignedDistanceField3 extends SignedDistanceField3 {
+class BoxFrameSignedDistanceField3 extends SignedDistanceField3 {
     constructor(size_x, size_y, size_z, frame_size = 5) {
         super();
         this.frame_size = frame_size;
@@ -3461,7 +3463,7 @@ export class BoxFrameSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class SphereSignedDistanceField3 extends SignedDistanceField3 {
+class SphereSignedDistanceField3 extends SignedDistanceField3 {
     constructor(radius = 5) {
         super();
         this.radius = radius;
@@ -3474,7 +3476,7 @@ export class SphereSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class TorusSignedDistanceField3 extends SignedDistanceField3 {
+class TorusSignedDistanceField3 extends SignedDistanceField3 {
     constructor(outer_radius = 10, inner_radius = 5) {
         super();
         const farthest_radius = outer_radius + inner_radius;
@@ -3490,7 +3492,7 @@ export class TorusSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class CylinderSignedDistanceField3 extends SignedDistanceField3 {
+class CylinderSignedDistanceField3 extends SignedDistanceField3 {
     constructor(radius = 10, height = 20) {
         super();
         this.radius = radius;
@@ -3508,7 +3510,7 @@ export class CylinderSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class PlaneSignedDistanceField3 extends SignedDistanceField3 {
+class PlaneSignedDistanceField3 extends SignedDistanceField3 {
     constructor(plane = new Plane(0, 0, 1, 0)) {
         super();
         this.plane = plane;
@@ -3521,7 +3523,7 @@ export class PlaneSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class TransformSignedDistanceField3 extends SignedDistanceField3 {
+class TransformSignedDistanceField3 extends SignedDistanceField3 {
     constructor(field, matrix = new Matrix4()) {
         super();
         this.matrix = matrix.clone();
@@ -3536,7 +3538,7 @@ export class TransformSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class TwistSignedDistanceField3 extends SignedDistanceField3 {
+class TwistSignedDistanceField3 extends SignedDistanceField3 {
     constructor(field, angle) {
         super();
         this.field = field;
@@ -3556,7 +3558,7 @@ export class TwistSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class ShellSignedDistanceField3 extends SignedDistanceField3 {
+class ShellSignedDistanceField3 extends SignedDistanceField3 {
     constructor(field, thickness) {
         super();
         this.field = field;
@@ -3569,7 +3571,7 @@ export class ShellSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class OffsetSignedDistanceField3 extends SignedDistanceField3 {
+class OffsetSignedDistanceField3 extends SignedDistanceField3 {
     constructor(field, distance) {
         super();
         this.field = field;
@@ -3582,7 +3584,7 @@ export class OffsetSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class UnionSignedDistanceField3 extends SignedDistanceField3 {
+class UnionSignedDistanceField3 extends SignedDistanceField3 {
     constructor(fields = []) {
         super();
         this.fields = fields;
@@ -3601,7 +3603,7 @@ export class UnionSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class DifferenceSignedDistanceField3 extends SignedDistanceField3 {
+class DifferenceSignedDistanceField3 extends SignedDistanceField3 {
     constructor(fields = []) {
         super();
         this.fields = fields;
@@ -3617,7 +3619,7 @@ export class DifferenceSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class IntersectionSignedDistanceField3 extends SignedDistanceField3 {
+class IntersectionSignedDistanceField3 extends SignedDistanceField3 {
     constructor(fields = []) {
         super();
         this.fields = fields;
@@ -3637,7 +3639,7 @@ export class IntersectionSignedDistanceField3 extends SignedDistanceField3 {
 }
 
 
-export class UnionSmoothSignedDistanceField3 extends SignedDistanceField3 {
+class UnionSmoothSignedDistanceField3 extends SignedDistanceField3 {
     constructor(smoothness, fields) {
         super();
         this.smoothness = smoothness;
@@ -3662,7 +3664,7 @@ export class UnionSmoothSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class DifferenceSmoothSignedDistanceField3 extends SignedDistanceField3 {
+class DifferenceSmoothSignedDistanceField3 extends SignedDistanceField3 {
     constructor(smoothness, fields) {
         super();
         this.smoothness = smoothness;
@@ -3684,7 +3686,7 @@ export class DifferenceSmoothSignedDistanceField3 extends SignedDistanceField3 {
     }
 }
 
-export class IntersectionSmoothSignedDistanceField3 extends SignedDistanceField3 {
+class IntersectionSmoothSignedDistanceField3 extends SignedDistanceField3 {
     constructor(smoothness, fields) {
         super();
         this.smoothness = smoothness;
@@ -3709,22 +3711,22 @@ export class IntersectionSmoothSignedDistanceField3 extends SignedDistanceField3
     }
 }
 
-export function box(size_x = 20, size_y = 20, size_z = 20, corner_radius = 0) { return new BoxSignedDistanceField3(size_x, size_y, size_z, corner_radius); }
-export function boxFrame(size_x = 20, size_y = 20, size_z = 20, frame_size = 5) { return new BoxFrameSignedDistanceField3(size_x, size_y, size_z, frame_size); }
-export function sphere(radius = 5) { return new SphereSignedDistanceField3(radius); }
-export function torus(radius_outer = 20, radius_inner = 5) { return new TorusSignedDistanceField3(radius_outer, radius_inner); }
-export function cylinder(radius = 10, height = Infinity) { return new CylinderSignedDistanceField3(radius, height); }
-export function plane(plane_ = new Plane()) { return new PlaneSignedDistanceField3(plane_); }
-export function transform(field, matrix = new Matrix4()) { return new TransformSignedDistanceField3(field, matrix); }
-export function twist(field, angle) { return new TwistSignedDistanceField3(field, angle); }
-export function shell(field, thickness) { return new ShellSignedDistanceField3(field, thickness); }
-export function offset(field, distance) { return new OffsetSignedDistanceField3(field, distance); }
-export function union(... fields) { return new UnionSignedDistanceField3(fields); }
-export function difference(... fields) { return new DifferenceSignedDistanceField3(fields); }
-export function intersection(... fields) { return new IntersectionSignedDistanceField3(fields); }
-export function unionSmooth(smoothness, ... fields) { return new UnionSmoothSignedDistanceField3(smoothness, fields); }
-export function differenceSmooth(smoothness, ... fields) { return new DifferenceSmoothSignedDistanceField3(smoothness, fields); }
-export function intersectionSmooth(smoothness, ... fields) { return new IntersectionSmoothSignedDistanceField3(smoothness, fields); }
+function box(size_x = 20, size_y = 20, size_z = 20, corner_radius = 0) { return new BoxSignedDistanceField3(size_x, size_y, size_z, corner_radius); }
+function boxFrame(size_x = 20, size_y = 20, size_z = 20, frame_size = 5) { return new BoxFrameSignedDistanceField3(size_x, size_y, size_z, frame_size); }
+function sphere(radius = 5) { return new SphereSignedDistanceField3(radius); }
+function torus(radius_outer = 20, radius_inner = 5) { return new TorusSignedDistanceField3(radius_outer, radius_inner); }
+function cylinder(radius = 10, height = Infinity) { return new CylinderSignedDistanceField3(radius, height); }
+function plane(plane_ = new Plane()) { return new PlaneSignedDistanceField3(plane_); }
+function transform(field, matrix = new Matrix4()) { return new TransformSignedDistanceField3(field, matrix); }
+function twist(field, angle) { return new TwistSignedDistanceField3(field, angle); }
+function shell(field, thickness) { return new ShellSignedDistanceField3(field, thickness); }
+function offset(field, distance) { return new OffsetSignedDistanceField3(field, distance); }
+function union(... fields) { return new UnionSignedDistanceField3(fields); }
+function difference(... fields) { return new DifferenceSignedDistanceField3(fields); }
+function intersection(... fields) { return new IntersectionSignedDistanceField3(fields); }
+function unionSmooth(smoothness, ... fields) { return new UnionSmoothSignedDistanceField3(smoothness, fields); }
+function differenceSmooth(smoothness, ... fields) { return new DifferenceSmoothSignedDistanceField3(smoothness, fields); }
+function intersectionSmooth(smoothness, ... fields) { return new IntersectionSmoothSignedDistanceField3(smoothness, fields); }
 
 const _SAMPLE_OCTREE_FULL = new SampleOctreeFull();
 const _SAMPLE_OCTREE_EMPTY = new SampleOctreeEmpty();
@@ -3746,3 +3748,71 @@ const _temp_edges = [
     new SampleEdge(0, 0, 0, 0, 0, 0, 0, 0),
     new SampleEdge(0, 0, 0, 0, 0, 0, 0, 0),
 ];
+
+exports.BoundingBox2 = BoundingBox2;
+exports.BoundingBox3 = BoundingBox3;
+exports.BoxFrameSignedDistanceField3 = BoxFrameSignedDistanceField3;
+exports.BoxSignedDistanceField3 = BoxSignedDistanceField3;
+exports.BufferWriter = BufferWriter;
+exports.CylinderSignedDistanceField3 = CylinderSignedDistanceField3;
+exports.DifferenceSignedDistanceField3 = DifferenceSignedDistanceField3;
+exports.DifferenceSmoothSignedDistanceField3 = DifferenceSmoothSignedDistanceField3;
+exports.EPSILON = EPSILON;
+exports.INV_TWO_EPSILON = INV_TWO_EPSILON;
+exports.IntersectionSignedDistanceField3 = IntersectionSignedDistanceField3;
+exports.IntersectionSmoothSignedDistanceField3 = IntersectionSmoothSignedDistanceField3;
+exports.Matrix2 = Matrix2;
+exports.Matrix3 = Matrix3;
+exports.Matrix4 = Matrix4;
+exports.OffsetSignedDistanceField3 = OffsetSignedDistanceField3;
+exports.Plane = Plane;
+exports.PlaneSignedDistanceField3 = PlaneSignedDistanceField3;
+exports.PolygonIndices = PolygonIndices;
+exports.PolygonMesh = PolygonMesh;
+exports.SampleOctreeEmpty = SampleOctreeEmpty;
+exports.SampleOctreeFull = SampleOctreeFull;
+exports.SampleOctreeLeaf = SampleOctreeLeaf;
+exports.SampleOctreeMeshBuilder = SampleOctreeMeshBuilder;
+exports.SampleOctreeRoot = SampleOctreeRoot;
+exports.ShellSignedDistanceField3 = ShellSignedDistanceField3;
+exports.SignedDistanceField3 = SignedDistanceField3;
+exports.SphereSignedDistanceField3 = SphereSignedDistanceField3;
+exports.TorusSignedDistanceField3 = TorusSignedDistanceField3;
+exports.TransformSignedDistanceField3 = TransformSignedDistanceField3;
+exports.TriangleMesh = TriangleMesh;
+exports.TwistSignedDistanceField3 = TwistSignedDistanceField3;
+exports.UnionSignedDistanceField3 = UnionSignedDistanceField3;
+exports.UnionSmoothSignedDistanceField3 = UnionSmoothSignedDistanceField3;
+exports.Vector2 = Vector2;
+exports.Vector3 = Vector3;
+exports.Vector4 = Vector4;
+exports.Vertex = Vertex;
+exports.bestDivisibleGridSize = bestDivisibleGridSize;
+exports.box = box;
+exports.boxFrame = boxFrame;
+exports.clamp = clamp;
+exports.closestEvenlyDivisibleGridSize = closestEvenlyDivisibleGridSize;
+exports.convertToOBJ = convertToOBJ;
+exports.convertToSTL = convertToSTL;
+exports.createSampleOctreeFromField = createSampleOctreeFromField;
+exports.cylinder = cylinder;
+exports.difference = difference;
+exports.differenceSmooth = differenceSmooth;
+exports.distanceFromOrigin = distanceFromOrigin;
+exports.distanceSquared = distanceSquared;
+exports.gcf = gcf;
+exports.intersection = intersection;
+exports.intersectionSmooth = intersectionSmooth;
+exports.lcm = lcm;
+exports.lerp = lerp;
+exports.offset = offset;
+exports.plane = plane;
+exports.shell = shell;
+exports.smallestGridSize = smallestGridSize;
+exports.sphere = sphere;
+exports.torus = torus;
+exports.transform = transform;
+exports.triangulateSignedDistanceField = triangulateSignedDistanceField;
+exports.twist = twist;
+exports.union = union;
+exports.unionSmooth = unionSmooth;

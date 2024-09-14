@@ -1,4 +1,4 @@
-import * as sdf from "../src/index.js";
+import * as sdf from "sdfjs";
 
 const field = sdf.box(20, 20, 20)
     .intersectionSmooth(0.5, sdf.sphere(13))

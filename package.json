@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup --config rollup.config.js"
   },
   "type": "module",
   "author": "",
@@ -26,5 +27,8 @@
     "3D",
     "surface nets",
     "model"
-  ]
+  ],
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4"
+  }
 }
